@@ -3,14 +3,29 @@ import { HttpClient } from '@angular/common/http';
 import { Employee } from './employee';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EmployeeService {
-  private url = `${window.location.protocol}//${window.location.host}`+':5000';
+  private url: string;
+
   employees$ = signal<Employee[]>([]);
   employee$ = signal<Employee>({} as Employee);
-  
-  constructor(private httpClient: HttpClient) { }
+
+  constructor(private httpClient: HttpClient) {
+    try {
+      // Try accessing 'window' in a browser environment
+      if (typeof window !== 'undefined') {
+        this.url = `${window.location.protocol}//${window.location.host}:5000`;
+      } else {
+        // Fallback for non-browser environments
+        this.url = 'http://localhost:5000';
+      }
+    } catch (error) {
+      // Suppress the error, handle it if necessary
+      console.warn('Window object is not available. Falling back to default URL.');
+      this.url = 'http://localhost:5000'; // Use fallback
+    }
+  }
 
   private refreshEmployees() {
     this.httpClient.get<Employee[]>(`${this.url}/employees`)
